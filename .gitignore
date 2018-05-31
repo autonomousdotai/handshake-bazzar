@@ -2,6 +2,8 @@
 */.idea
 */node_modules
 */*.lock
-crowdfunding-bazzar/vendor
-crowdfunding-bazzar/logs
-crowdfunding-bazzar/setting/*.json
+bazzar-job/configs/*.js
+bazzar-job/*lock.js
+bazzar-service/vendor
+bazzar-service/logs
+bazzar-service/configs/*.json
