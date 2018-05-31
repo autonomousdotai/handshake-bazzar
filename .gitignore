@@ -3,7 +3,7 @@
 */node_modules
 */*.lock
 bazzar-job/configs/*.js
-bazzar-job/*lock.js
+bazzar-job/*lock.json
 bazzar-service/vendor
 bazzar-service/logs
 bazzar-service/configs/*.json
