@@ -16,9 +16,9 @@ var constants = require('./constants');
 var Web3 = require('web3');
 web3 = new Web3(new Web3.providers.HttpProvider(config.blockchainNetwork));
 
-var payableContractJson = require('./contracts/CrowdsaleHandshake.json');
+var payableContractJson = require('./contracts/PayableHandshake.json');
 var payableContractAddress = config.payableContractAddress
-var payableContractEventNames = ['__init', '__shake', '__unshake', '__cancel', '__refund', '__stop', '__withdraw'];
+var payableContractEventNames = ['__init', '__shake', '__deliver', '__cancel', '__reject', '__accept', '__withdraw'];
 var payableContractInstance = new web3.eth.Contract(payableContractJson.abi, payableContractAddress);
 
 console.log('Events by blockchainNetwork: ' + config.blockchainNetwork);
@@ -137,6 +137,134 @@ async function processEventObj(contractAddress, eventName, eventObj) {
                             let tns = await ethTxDAO.getByHash(tx_hash);
                             if (tns == null) {
                                 tns = await ethTxDAO.create(productShake.user_id, tx_hash, 'payable_shake', productShake.id);
+                            }
+                        }
+                    }
+                        break;
+                    case '__cancel': {
+                        console.log("__shake hid = " + eventObj.returnValues.hid);
+                        console.log("__shake offchain = " + eventObj.returnValues.offchain);
+                        const hid = eventObj.returnValues.hid;
+                        const offchain = eventObj.returnValues.offchain;
+                        if (hid == undefined || offchain == undefined) {
+                            console.log("__shake missing parameters");
+                            break;
+                        }
+                        let offchainStr = Web3.utils.toAscii(offchain);
+                        let offchains = parseOffchain(offchainStr);
+                        console.log("__shake offchains", offchains);
+                        let offchainType = offchains[0];
+                        if (offchainType == constants.OFFCHAIN_TYPE_SHAKE) {
+                            let productShakeId = parseInt(offchains[1]);
+                            let productShake = await productShakeDao.getById(productShakeId);
+                            if (productShake == null) {
+                                console.log("__shake productShakeDAO.getById NULL", productShakeId);
+                                break;
+                            }
+                            console.log("__shake productShakeDAO.getById OK", productShakeId);
+
+                            await productShakeDao.updateStatus(tx, productShake.id, constants.ORDER_STATUS_CANCELED)
+                            console.log("__shake productShakeDAO.updateStatus OK", productShake.id, constants.ORDER_STATUS_CANCELED)
+
+                            let tns = await ethTxDAO.getByHash(tx_hash);
+                            if (tns == null) {
+                                tns = await ethTxDAO.create(productShake.user_id, tx_hash, 'payable_cancel', productShake.id);
+                            }
+                        }
+                    }
+                        break;
+                    case '__reject': {
+                        console.log("__shake hid = " + eventObj.returnValues.hid);
+                        console.log("__shake offchain = " + eventObj.returnValues.offchain);
+                        const hid = eventObj.returnValues.hid;
+                        const offchain = eventObj.returnValues.offchain;
+                        if (hid == undefined || offchain == undefined) {
+                            console.log("__shake missing parameters");
+                            break;
+                        }
+                        let offchainStr = Web3.utils.toAscii(offchain);
+                        let offchains = parseOffchain(offchainStr);
+                        console.log("__shake offchains", offchains);
+                        let offchainType = offchains[0];
+                        if (offchainType == constants.OFFCHAIN_TYPE_SHAKE) {
+                            let productShakeId = parseInt(offchains[1]);
+                            let productShake = await productShakeDao.getById(productShakeId);
+                            if (productShake == null) {
+                                console.log("__shake productShakeDAO.getById NULL", productShakeId);
+                                break;
+                            }
+                            console.log("__shake productShakeDAO.getById OK", productShakeId);
+
+                            await productShakeDao.updateStatus(tx, productShake.id, constants.ORDER_STATUS_REJECTED)
+                            console.log("__shake productShakeDAO.updateStatus OK", productShake.id, constants.ORDER_STATUS_REJECTED)
+
+                            let tns = await ethTxDAO.getByHash(tx_hash);
+                            if (tns == null) {
+                                tns = await ethTxDAO.create(productShake.user_id, tx_hash, 'payable_reject', productShake.id);
+                            }
+                        }
+                    }
+                        break;
+                    case '__accept': {
+                        console.log("__shake hid = " + eventObj.returnValues.hid);
+                        console.log("__shake offchain = " + eventObj.returnValues.offchain);
+                        const hid = eventObj.returnValues.hid;
+                        const offchain = eventObj.returnValues.offchain;
+                        if (hid == undefined || offchain == undefined) {
+                            console.log("__shake missing parameters");
+                            break;
+                        }
+                        let offchainStr = Web3.utils.toAscii(offchain);
+                        let offchains = parseOffchain(offchainStr);
+                        console.log("__shake offchains", offchains);
+                        let offchainType = offchains[0];
+                        if (offchainType == constants.OFFCHAIN_TYPE_SHAKE) {
+                            let productShakeId = parseInt(offchains[1]);
+                            let productShake = await productShakeDao.getById(productShakeId);
+                            if (productShake == null) {
+                                console.log("__shake productShakeDAO.getById NULL", productShakeId);
+                                break;
+                            }
+                            console.log("__shake productShakeDAO.getById OK", productShakeId);
+
+                            await productShakeDao.updateStatus(tx, productShake.id, constants.ORDER_STATUS_ACCEPTED)
+                            console.log("__shake productShakeDAO.updateStatus OK", productShake.id, constants.ORDER_STATUS_ACCEPTED)
+
+                            let tns = await ethTxDAO.getByHash(tx_hash);
+                            if (tns == null) {
+                                tns = await ethTxDAO.create(productShake.user_id, tx_hash, 'payable_accept', productShake.id);
+                            }
+                        }
+                    }
+                        break;
+                    case '__withdraw': {
+                        console.log("__shake hid = " + eventObj.returnValues.hid);
+                        console.log("__shake offchain = " + eventObj.returnValues.offchain);
+                        const hid = eventObj.returnValues.hid;
+                        const offchain = eventObj.returnValues.offchain;
+                        if (hid == undefined || offchain == undefined) {
+                            console.log("__shake missing parameters");
+                            break;
+                        }
+                        let offchainStr = Web3.utils.toAscii(offchain);
+                        let offchains = parseOffchain(offchainStr);
+                        console.log("__shake offchains", offchains);
+                        let offchainType = offchains[0];
+                        if (offchainType == constants.OFFCHAIN_TYPE_SHAKE) {
+                            let productShakeId = parseInt(offchains[1]);
+                            let productShake = await productShakeDao.getById(productShakeId);
+                            if (productShake == null) {
+                                console.log("__shake productShakeDAO.getById NULL", productShakeId);
+                                break;
+                            }
+                            console.log("__shake productShakeDAO.getById OK", productShakeId);
+
+                            await productShakeDao.updateStatus(tx, productShake.id, constants.ORDER_STATUS_WITHDRAWED)
+                            console.log("__shake productShakeDAO.updateStatus OK", productShake.id, constants.ORDER_STATUS_WITHDRAWED)
+
+                            let tns = await ethTxDAO.getByHash(tx_hash);
+                            if (tns == null) {
+                                tns = await ethTxDAO.create(productShake.user_id, tx_hash, 'payable_withdraw', productShake.id);
                             }
                         }
                     }
