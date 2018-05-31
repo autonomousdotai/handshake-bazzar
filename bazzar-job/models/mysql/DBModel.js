@@ -68,22 +68,16 @@ var Product = db.define('product', {
     date_modified: Sequelize.DATE,
     modified_user_id: Sequelize.INTEGER,
     created_user_id: Sequelize.INTEGER,
-    hid: Sequelize.INTEGER,
     user_id: Sequelize.INTEGER,
     name: Sequelize.STRING,
     description: Sequelize.STRING,
-    short_description: Sequelize.STRING,
-    image: Sequelize.STRING,
-    youtube_url: Sequelize.STRING,
-    crowd_date: Sequelize.DATE,
-    deliver_date: Sequelize.DATE,
+    specification: Sequelize.STRING,
     price: Sequelize.DECIMAL,
-    goal: Sequelize.DECIMAL,
-    balance: Sequelize.DECIMAL,
+    shipping: Sequelize.INTEGER,
     shake_num: Sequelize.INTEGER,
     status: Sequelize.INTEGER
 }, {
-    tableName: 'crowd_funding',
+    tableName: 'product',
     timestamps: false,
     underscored: true
 });
@@ -101,14 +95,14 @@ var ProductShake = db.define('product_shake', {
     modified_user_id: Sequelize.INTEGER,
     created_user_id: Sequelize.INTEGER,
     user_id: Sequelize.INTEGER,
-    crowd_funding_id: Sequelize.INTEGER,
+    product_id: Sequelize.INTEGER,
     price: Sequelize.DECIMAL,
     quantity: Sequelize.INTEGER,
     amount: Sequelize.DECIMAL,
     status: Sequelize.INTEGER,
     address: Sequelize.STRING
 }, {
-    tableName: 'crowd_funding',
+    tableName: 'product_shake',
     timestamps: false,
     underscored: true
 });
