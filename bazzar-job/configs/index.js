@@ -5,7 +5,7 @@ module.exports = {
         password: process.env.MYSQL_PASSWORD,
         host: process.env.MYSQL_HOST,
         dialect: 'mysql',
-        timezone: '-07:00',
+        timezone: process.env.MYSQL_TIMEZONE,
         pool: {
             max: 5,
             min: 0,
