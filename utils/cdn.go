@@ -9,12 +9,7 @@ func CdnUrlFor(fileUrl string) string {
 		return ""
 	}
 	result := ""
-	if configs.CdnHttps == true {
-		result += "https://"
-	} else {
-		result += "http://"
-	}
-	result += configs.CdnDomain + "/" + fileUrl
+	result += configs.AppConf.CdnUrl + "/" + fileUrl
 	return result
 }
 
@@ -23,11 +18,6 @@ func CdnUrlFor2(filePath string, fileUrl string) string {
 		return ""
 	}
 	result := ""
-	if configs.CdnHttps == true {
-		result += "https://"
-	} else {
-		result += "http://"
-	}
-	result += configs.CdnDomain + "/" + filePath + fileUrl
+	result += configs.AppConf.CdnUrl + "/" + filePath + fileUrl
 	return result
 }

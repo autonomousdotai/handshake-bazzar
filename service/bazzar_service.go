@@ -335,7 +335,7 @@ func (crowdService BazzarService) IndexSolr(productId int64) error {
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("%s/%s", configs.SolrServiceUrl, "handshake/update")
+	url := fmt.Sprintf("%s/%s", configs.AppConf.SolrServiceUrl, "handshake/update")
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -9,12 +10,16 @@ import (
 	"strconv"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-bazzar/api"
 	"github.com/ninjadotorg/handshake-bazzar/configs"
+	"google.golang.org/api/option"
 )
 
 func main() {
+
+	configs.Initialize(os.Getenv("APP_CONF"))
 
 	// Logger
 	logFile, err := os.OpenFile("logs/autonomous_service.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
@@ -42,7 +47,7 @@ func main() {
 	}
 	api := api.Api{}
 	api.Init(router)
-	router.Run(fmt.Sprintf(":%d", configs.ServicePort))
+	router.Run(fmt.Sprintf(":%d", configs.AppConf.ServicePort))
 }
 
 func Logger() gin.HandlerFunc {
@@ -62,4 +67,15 @@ func AuthorizeMiddleware() gin.HandlerFunc {
 		context.Set("UserId", userId)
 		context.Next()
 	}
+}
+
+func NewProcesser() error {
+	opt := option.WithCredentialsFile(configs.AppConf.PubsubConf.CredsFile)
+	pubsubClient, err := pubsub.NewClient(context.Background(), configs.AppConf.PubsubConf.ProjectId, opt)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	api.NewEthHandler(pubsubClient, configs.AppConf.PubsubConf.Topic, configs.AppConf.PubsubConf.Subscription)
+	return nil
 }

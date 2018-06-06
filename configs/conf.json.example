@@ -1,0 +1,14 @@
+{
+  "service_port": 0,
+  "db_url": "",
+  "cdn_url": "",
+  "dispatcher_service_url": "",
+  "storage_service_url": "",
+  "solr_service_url": "",
+  "pubsub_conf": {
+    "creds_file": "",
+    "project_id": "",
+    "topic": "",
+    "subscription": ""
+  }
+}
