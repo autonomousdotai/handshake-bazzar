@@ -3,6 +3,7 @@ package response_obj
 import (
 	"time"
 
+	"github.com/ninjadotorg/handshake-bazzar/bean"
 	"github.com/ninjadotorg/handshake-bazzar/models"
 	"github.com/ninjadotorg/handshake-bazzar/utils"
 )
@@ -63,4 +64,60 @@ func MakeArrayProductImageResponse(models []models.ProductImage) []ProductImageR
 		results = append(results, result)
 	}
 	return results
+}
+
+type UserResponse struct {
+	ID     int64  `json:"id"`
+	Email  string `json:"email"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+	Status int    `json:"status"`
+}
+
+func MakeUserResponse(model models.User) UserResponse {
+	result := UserResponse{}
+	result.ID = model.ID
+	result.Email = model.Email
+	result.Name = model.Name
+	result.Avatar = utils.CdnUrlFor(model.Avatar)
+	return result
+}
+
+type ProductFaqResponse struct {
+	ID           int64        `json:"id"`
+	DateCreated  time.Time    `json:"date_created"`
+	DateModified time.Time    `json:"date_modified"`
+	UserId       int64        `json:"user_id"`
+	ProductId    int64        `json:"product_id"`
+	Question     string       `json:"question"`
+	Answer       string       `json:"answer"`
+	Status       int          `json:"status"`
+	User         UserResponse `json:"user"`
+}
+
+func MakeProductFaqResponse(model models.ProductFaq) ProductFaqResponse {
+	result := ProductFaqResponse{}
+	result.ID = model.ID
+	result.DateCreated = model.DateCreated
+	result.DateModified = model.DateModified
+	result.UserId = model.UserId
+	result.ProductId = model.ProductId
+	result.Question = model.Question
+	result.Answer = model.Answer
+	result.Status = model.Status
+	result.User = MakeUserResponse(model.User)
+	return result
+}
+
+func MakeArrayProductFaqResponse(models []models.ProductFaq) []ProductFaqResponse {
+	results := []ProductFaqResponse{}
+	for _, model := range models {
+		result := MakeProductFaqResponse(model)
+		results = append(results, result)
+	}
+	return results
+}
+
+func MakePaginationProductFaqResponse(pagination *bean.Pagination) PaginationResponse {
+	return MakePaginationResponse(pagination.Page, pagination.PageSize, pagination.Total, MakeArrayProductFaqResponse(pagination.Items.([]models.ProductFaq)))
 }

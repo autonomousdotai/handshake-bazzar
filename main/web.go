@@ -45,13 +45,17 @@ func main() {
 		index.GET("/", func(context *gin.Context) {
 			result := map[string]interface{}{
 				"status":  1,
-				"message": "Crowdfunding Service API",
+				"message": "Bazzar Service API",
 			}
 			context.JSON(http.StatusOK, result)
 		})
 	}
-	api := api.Api{}
-	api.Init(router)
+	productApi := api.ProductApi{}
+	productApi.Init(router)
+
+	faqApi := api.FaqApi{}
+	faqApi.Init(router)
+
 	router.Run(fmt.Sprintf(":%d", configs.AppConf.ServicePort))
 }
 

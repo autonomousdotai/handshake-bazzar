@@ -1,21 +1,23 @@
 package models
 
 import (
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "time"
 	"time"
+	_ "time"
+
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 type ProductFaq struct {
-	ID           int
+	ID           int64
 	DateCreated  time.Time
 	DateModified time.Time
-	ProductId    int
+	ProductId    int64
 	Question     string
 	Answer       string
-	UserId       int
+	UserId       int64
 	Priority     int
 	Status       int
+	User         User
 }
 
 func (ProductFaq) TableName() string {

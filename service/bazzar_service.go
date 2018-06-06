@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/bean"
 	"github.com/ninjadotorg/handshake-bazzar/configs"
 	"github.com/ninjadotorg/handshake-bazzar/models"
 	"github.com/ninjadotorg/handshake-bazzar/request_obj"
@@ -24,7 +25,7 @@ import (
 type BazzarService struct {
 }
 
-func (crowdService BazzarService) CreateTx(userId int64, address string, hash string, refType string, refId int64, tx *gorm.DB) (models.EthTx, error) {
+func (bazzarService BazzarService) CreateTx(userId int64, address string, hash string, refType string, refId int64, tx *gorm.DB) (models.EthTx, error) {
 	ethTx := models.EthTx{}
 	ethTx.UserId = userId
 	ethTx.FromAddress = address
@@ -40,7 +41,7 @@ func (crowdService BazzarService) CreateTx(userId int64, address string, hash st
 	return ethTx, nil
 }
 
-func (crowdService BazzarService) CreateProduct(userId int64, request request_obj.ProductRequest, context *gin.Context) (models.Product, error) {
+func (bazzarService BazzarService) CreateProduct(userId int64, request request_obj.ProductRequest, context *gin.Context) (models.Product, error) {
 	product := models.Product{}
 
 	tx := models.Database().Begin()
@@ -104,53 +105,53 @@ func (crowdService BazzarService) CreateProduct(userId int64, request request_ob
 	return product, nil
 }
 
-func (crowdService BazzarService) UpdateProduct(userId int64, crowdFundingId int64, request request_obj.ProductRequest, imageFile *multipart.File, imageFileHeader *multipart.FileHeader) (models.Product, error) {
-	crowdFunding := productDao.GetById(crowdFundingId)
-	if crowdFunding.ID <= 0 || crowdFunding.UserId != userId {
-		return crowdFunding, errors.New("crowdFundingId is invalid")
+func (bazzarService BazzarService) UpdateProduct(userId int64, productId int64, request request_obj.ProductRequest, imageFile *multipart.File, imageFileHeader *multipart.FileHeader) (models.Product, error) {
+	product := productDao.GetById(productId)
+	if product.ID <= 0 || product.UserId != userId {
+		return product, errors.New("productId is invalid")
 	}
 
-	crowdFunding.Name = request.Name
-	crowdFunding.Description = request.Description
-	crowdFunding.Specification = request.Specification
+	product.Name = request.Name
+	product.Description = request.Description
+	product.Specification = request.Specification
 
-	if crowdFunding.Status == 1 {
-		crowdFunding.Price = request.Price
-		crowdFunding.Shipping = request.Shipping
+	if product.Status == 1 {
+		product.Price = request.Price
+		product.Shipping = request.Shipping
 	}
 
-	crowdFunding, err := productDao.Update(crowdFunding, nil)
+	product, err := productDao.Update(product, nil)
 	if err != nil {
 		log.Println(err)
-		return crowdFunding, err
+		return product, err
 	}
-	return crowdFunding, nil
+	return product, nil
 }
 
-func (crowdService BazzarService) GetProduct(userId int64, crowdFundingId int64) (models.Product, error) {
-	crowdFunding := productDao.GetById(crowdFundingId)
-	if crowdFunding.ID <= 0 {
-		return crowdFunding, errors.New("crowdFundingId is invalid")
+func (bazzarService BazzarService) GetProduct(userId int64, productId int64) (models.Product, error) {
+	product := productDao.GetById(productId)
+	if product.ID <= 0 {
+		return product, errors.New("productId is invalid")
 	}
-	return crowdFunding, nil
+	return product, nil
 }
 
-func (crowdService BazzarService) ShakeProduct(userId int64, productId int64, quantity int, address string, hash string) (models.ProductShake, error) {
+func (bazzarService BazzarService) ShakeProduct(userId int64, productId int64, quantity int, address string, hash string) (models.ProductShake, error) {
 	productShake := models.ProductShake{}
 
 	if quantity <= 0 {
 		return productShake, errors.New("quantity is invalid")
 	}
 
-	crowdFunding := productDao.GetFullById(productId)
-	if crowdFunding.ID <= 0 {
+	product := productDao.GetFullById(productId)
+	if product.ID <= 0 {
 		return productShake, errors.New("productId is invalid")
 	}
 
 	productShake.UserId = userId
 	productShake.ProductId = productId
 	productShake.Quantity = quantity
-	productShake.Amount = float64(productShake.Quantity) * crowdFunding.Price
+	productShake.Amount = float64(productShake.Quantity) * product.Price
 	productShake.Status = utils.ORDER_STATUS_SHAKED_PROCESS
 
 	productShake, err := productShakeDao.Create(productShake, nil)
@@ -159,7 +160,7 @@ func (crowdService BazzarService) ShakeProduct(userId int64, productId int64, qu
 		return productShake, err
 	}
 
-	_, err = crowdService.CreateTx(userId, address, hash, "payable_shake", productShake.ID, nil)
+	_, err = bazzarService.CreateTx(userId, address, hash, "payable_shake", productShake.ID, nil)
 	if err != nil {
 		log.Println(err)
 		return productShake, err
@@ -168,13 +169,13 @@ func (crowdService BazzarService) ShakeProduct(userId int64, productId int64, qu
 	return productShake, nil
 }
 
-func (crowdService BazzarService) DeliverProductShake(userId int64, productShakeId int64, address string, hash string) error {
+func (bazzarService BazzarService) DeliverProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return errors.New("crowdFunding is not shaked")
+		return errors.New("product is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, err := crowdService.CreateTx(userId, address, hash, "payable_deliver", userId, tx)
+	_, err := bazzarService.CreateTx(userId, address, hash, "payable_deliver", userId, tx)
 	if err != nil {
 		log.Println(err)
 
@@ -194,13 +195,13 @@ func (crowdService BazzarService) DeliverProductShake(userId int64, productShake
 	return nil
 }
 
-func (crowdService BazzarService) CancelProductShake(userId int64, productShakeId int64, address string, hash string) error {
+func (bazzarService BazzarService) CancelProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return errors.New("crowdFunding is not shaked")
+		return errors.New("product is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, err := crowdService.CreateTx(userId, address, hash, "payable_cancel", userId, tx)
+	_, err := bazzarService.CreateTx(userId, address, hash, "payable_cancel", userId, tx)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
@@ -219,13 +220,13 @@ func (crowdService BazzarService) CancelProductShake(userId int64, productShakeI
 	return nil
 }
 
-func (crowdService BazzarService) RejectProductShake(userId int64, productShakeId int64, address string, hash string) error {
+func (bazzarService BazzarService) RejectProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return errors.New("crowdFunding is not shaked")
+		return errors.New("product is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, err := crowdService.CreateTx(userId, address, hash, "payable_reject", userId, tx)
+	_, err := bazzarService.CreateTx(userId, address, hash, "payable_reject", userId, tx)
 	if err != nil {
 		log.Println(err)
 
@@ -245,13 +246,13 @@ func (crowdService BazzarService) RejectProductShake(userId int64, productShakeI
 	return nil
 }
 
-func (crowdService BazzarService) AcceptProductShake(userId int64, productShakeId int64, address string, hash string) error {
+func (bazzarService BazzarService) AcceptProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return errors.New("crowdFunding is not shaked")
+		return errors.New("product is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, err := crowdService.CreateTx(userId, address, hash, "payable_accept", userId, tx)
+	_, err := bazzarService.CreateTx(userId, address, hash, "payable_accept", userId, tx)
 	if err != nil {
 		log.Println(err)
 
@@ -271,13 +272,13 @@ func (crowdService BazzarService) AcceptProductShake(userId int64, productShakeI
 	return nil
 }
 
-func (crowdService BazzarService) WithdrawProductShake(userId int64, productShakeId int64, address string, hash string) error {
+func (bazzarService BazzarService) WithdrawProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return errors.New("crowdFunding is not shaked")
+		return errors.New("product is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, err := crowdService.CreateTx(userId, address, hash, "payable_withdraw", userId, tx)
+	_, err := bazzarService.CreateTx(userId, address, hash, "payable_withdraw", userId, tx)
 	if err != nil {
 		log.Println(err)
 
@@ -297,13 +298,13 @@ func (crowdService BazzarService) WithdrawProductShake(userId int64, productShak
 	return nil
 }
 
-func (crowdService BazzarService) IndexSolr(productId int64) error {
+func (bazzarService BazzarService) IndexSolr(productId int64) error {
 	product := productDao.GetFullById(productId)
 
-	crowdFundingImages := productImageDao.GetByProductId(product.ID)
+	productImages := productImageDao.GetByProductId(product.ID)
 	imageUrls := []string{}
-	for _, crowdFundingImage := range crowdFundingImages {
-		imageUrls = append(imageUrls, crowdFundingImage.Image)
+	for _, productImage := range productImages {
+		imageUrls = append(imageUrls, productImage.Image)
 	}
 
 	document := map[string]interface{}{
@@ -354,7 +355,7 @@ func (crowdService BazzarService) IndexSolr(productId int64) error {
 	return nil
 }
 
-func (crowdService BazzarService) ProcessEventInit(hid int64, productShakeId int64) error {
+func (bazzarService BazzarService) ProcessEventInit(hid int64, productShakeId int64) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 {
 		return errors.New("productShake is invalid")
@@ -371,7 +372,7 @@ func (crowdService BazzarService) ProcessEventInit(hid int64, productShakeId int
 	return nil
 }
 
-func (crowdService BazzarService) ProcessEventShake(hid int64, productShakeId int64, fromAddress string) error {
+func (bazzarService BazzarService) ProcessEventShake(hid int64, productShakeId int64, fromAddress string) error {
 	tx := models.Database().Begin()
 
 	productShake := productShakeDao.GetById(productShakeId)
@@ -408,7 +409,7 @@ func (crowdService BazzarService) ProcessEventShake(hid int64, productShakeId in
 	return nil
 }
 
-func (crowdService BazzarService) ProcessEventDeliver(hid int64, productShakeId int64) error {
+func (bazzarService BazzarService) ProcessEventDeliver(hid int64, productShakeId int64) error {
 	tx := models.Database().Begin()
 
 	productShake := productShakeDao.GetById(productShakeId)
@@ -430,7 +431,7 @@ func (crowdService BazzarService) ProcessEventDeliver(hid int64, productShakeId 
 	return nil
 }
 
-func (crowdService BazzarService) ProcessEventReject(hid int64, productShakeId int64) error {
+func (bazzarService BazzarService) ProcessEventReject(hid int64, productShakeId int64) error {
 	tx := models.Database().Begin()
 
 	productShake := productShakeDao.GetById(productShakeId)
@@ -452,7 +453,7 @@ func (crowdService BazzarService) ProcessEventReject(hid int64, productShakeId i
 	return nil
 }
 
-func (crowdService BazzarService) ProcessEventAccept(hid int64, productShakeId int64) error {
+func (bazzarService BazzarService) ProcessEventAccept(hid int64, productShakeId int64) error {
 	tx := models.Database().Begin()
 
 	productShake := productShakeDao.GetById(productShakeId)
@@ -474,7 +475,7 @@ func (crowdService BazzarService) ProcessEventAccept(hid int64, productShakeId i
 	return nil
 }
 
-func (crowdService BazzarService) ProcessEventCancel(hid int64, productShakeId int64) error {
+func (bazzarService BazzarService) ProcessEventCancel(hid int64, productShakeId int64) error {
 	tx := models.Database().Begin()
 
 	productShake := productShakeDao.GetById(productShakeId)
@@ -496,7 +497,7 @@ func (crowdService BazzarService) ProcessEventCancel(hid int64, productShakeId i
 	return nil
 }
 
-func (crowdService BazzarService) ProcessEventWithdraw(hid int64, productShakeId int64) error {
+func (bazzarService BazzarService) ProcessEventWithdraw(hid int64, productShakeId int64) error {
 	tx := models.Database().Begin()
 
 	productShake := productShakeDao.GetById(productShakeId)
@@ -516,4 +517,76 @@ func (crowdService BazzarService) ProcessEventWithdraw(hid int64, productShakeId
 
 	tx.Commit()
 	return nil
+}
+
+func (bazzarService BazzarService) CreateFaq(userId int64, productId int64, productFaqRequest request_obj.ProductFaqRequest) (models.ProductFaq, error) {
+	productFaq := models.ProductFaq{}
+
+	productFaq.UserId = userId
+	productFaq.ProductId = productId
+	productFaq.Question = productFaqRequest.Question
+	productFaq.Answer = productFaqRequest.Answer
+	productFaq.Status = 1
+
+	productFaq, err := productFaqDao.Create(productFaq, nil)
+	if err != nil {
+		log.Println(err)
+		return productFaq, err
+	}
+
+	return productFaq, nil
+}
+
+func (bazzarService BazzarService) UpdateFaq(userId int64, faqId int64, productFaqRequest request_obj.ProductFaqRequest) (models.ProductFaq, error) {
+	productFaq := productFaqDao.GetById(faqId)
+
+	if productFaq.ID <= 0 || productFaq.UserId != userId {
+		return productFaq, errors.New("faq_id is invalid")
+	}
+
+	productFaq.Question = productFaqRequest.Question
+	productFaq.Answer = productFaqRequest.Answer
+
+	productFaq, err := productFaqDao.Update(productFaq, nil)
+	if err != nil {
+		log.Println(err)
+		return productFaq, err
+	}
+
+	return productFaq, nil
+}
+
+func (bazzarService BazzarService) GetFaqsByCrowdId(productId int64, pagination *bean.Pagination) (*bean.Pagination, error) {
+	pagination, err := productFaqDao.GetAllBy(0, productId, pagination)
+	faqs := pagination.Items.([]models.ProductFaq)
+	items := []models.ProductFaq{}
+	for _, faq := range faqs {
+		user, _ := bazzarService.GetUser(faq.UserId)
+		faq.User = user
+		items = append(items, faq)
+	}
+	pagination.Items = items
+	return pagination, err
+}
+
+func (bazzarService BazzarService) GetUser(userId int64) (models.User, error) {
+	result := models.JsonUserResponse{}
+	url := fmt.Sprintf("%s/%s/%d", configs.AppConf.DispatcherServiceUrl, "system/user", userId)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Println(err)
+		return result.Data, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	bodyBytes, err := netUtil.CurlRequest(req)
+	if err != nil {
+		log.Println(err)
+		return result.Data, err
+	}
+	err = json.Unmarshal(bodyBytes, &result)
+	if err != nil {
+		log.Println(err)
+		return result.Data, err
+	}
+	return result.Data, err
 }

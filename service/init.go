@@ -11,6 +11,7 @@ var fileUploadService = utils.GSService{}
 var productDao = dao.ProductDao{}
 var productImageDao = dao.ProductImageDao{}
 var productShakeDao = dao.ProductShakeDao{}
+var productFaqDao = dao.ProductFaqDao{}
 var ethTxDao = dao.EthTxDao{}
 
 // template

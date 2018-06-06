@@ -12,41 +12,44 @@ import (
 	"github.com/ninjadotorg/handshake-bazzar/response_obj"
 )
 
-type Api struct {
+type ProductApi struct {
 }
 
-func (api Api) Init(router *gin.Engine) *gin.Engine {
-	router.POST("/", func(context *gin.Context) {
-		api.CreateProduct(context)
-	})
-	router.PUT("/", func(context *gin.Context) {
-		api.UpdateProduct(context)
-	})
-	router.GET("/:product_id", func(context *gin.Context) {
-		api.GetProduct(context)
-	})
-	router.POST("/shake/:product_id", func(context *gin.Context) {
-		api.ShakeProduct(context)
-	})
-	router.POST("/deliver/:product_shake_id", func(context *gin.Context) {
-		api.DeliverProductShake(context)
-	})
-	router.POST("/cancel/:product_shake_id", func(context *gin.Context) {
-		api.CancelProductShake(context)
-	})
-	router.POST("/reject/:product_shake_id", func(context *gin.Context) {
-		api.RejectProductShake(context)
-	})
-	router.POST("/accept/:product_shake_id", func(context *gin.Context) {
-		api.AcceptProductShake(context)
-	})
-	router.POST("/withdraw/:product_shake_id", func(context *gin.Context) {
-		api.WithdrawProductShake(context)
-	})
-	return router
+func (api ProductApi) Init(router *gin.Engine) *gin.RouterGroup {
+	bazzarGroup := router.Group("/product")
+	{
+		bazzarGroup.POST("/", func(context *gin.Context) {
+			api.CreateProduct(context)
+		})
+		bazzarGroup.PUT("/", func(context *gin.Context) {
+			api.UpdateProduct(context)
+		})
+		bazzarGroup.GET("/:product_id", func(context *gin.Context) {
+			api.GetProduct(context)
+		})
+		bazzarGroup.POST("/shake/:product_id", func(context *gin.Context) {
+			api.ShakeProduct(context)
+		})
+		bazzarGroup.POST("/deliver/:product_shake_id", func(context *gin.Context) {
+			api.DeliverProductShake(context)
+		})
+		bazzarGroup.POST("/cancel/:product_shake_id", func(context *gin.Context) {
+			api.CancelProductShake(context)
+		})
+		bazzarGroup.POST("/reject/:product_shake_id", func(context *gin.Context) {
+			api.RejectProductShake(context)
+		})
+		bazzarGroup.POST("/accept/:product_shake_id", func(context *gin.Context) {
+			api.AcceptProductShake(context)
+		})
+		bazzarGroup.POST("/withdraw/:product_shake_id", func(context *gin.Context) {
+			api.WithdrawProductShake(context)
+		})
+	}
+	return bazzarGroup
 }
 
-func (self Api) CreateProduct(context *gin.Context) {
+func (self ProductApi) CreateProduct(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
@@ -88,7 +91,7 @@ func (self Api) CreateProduct(context *gin.Context) {
 	return
 }
 
-func (self Api) UpdateProduct(context *gin.Context) {
+func (self ProductApi) UpdateProduct(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
@@ -142,7 +145,7 @@ func (self Api) UpdateProduct(context *gin.Context) {
 	return
 }
 
-func (self Api) GetProduct(context *gin.Context) {
+func (self ProductApi) GetProduct(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	crowdFungingId, err := strconv.ParseInt(context.Param("crowd_funding_id"), 10, 64)
@@ -174,7 +177,7 @@ func (self Api) GetProduct(context *gin.Context) {
 	return
 }
 
-func (self Api) ShakeProduct(context *gin.Context) {
+func (self ProductApi) ShakeProduct(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
@@ -220,7 +223,7 @@ func (self Api) ShakeProduct(context *gin.Context) {
 	return
 }
 
-func (self Api) DeliverProductShake(context *gin.Context) {
+func (self ProductApi) DeliverProductShake(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
@@ -264,7 +267,7 @@ func (self Api) DeliverProductShake(context *gin.Context) {
 	return
 }
 
-func (self Api) CancelProductShake(context *gin.Context) {
+func (self ProductApi) CancelProductShake(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
@@ -308,7 +311,7 @@ func (self Api) CancelProductShake(context *gin.Context) {
 	return
 }
 
-func (self Api) RejectProductShake(context *gin.Context) {
+func (self ProductApi) RejectProductShake(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
@@ -352,7 +355,7 @@ func (self Api) RejectProductShake(context *gin.Context) {
 	return
 }
 
-func (self Api) AcceptProductShake(context *gin.Context) {
+func (self ProductApi) AcceptProductShake(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
@@ -396,7 +399,7 @@ func (self Api) AcceptProductShake(context *gin.Context) {
 	return
 }
 
-func (self Api) WithdrawProductShake(context *gin.Context) {
+func (self ProductApi) WithdrawProductShake(context *gin.Context) {
 	result := new(response_obj.ResponseObject)
 
 	userId, ok := context.Get("UserId")
