@@ -1,17 +1,18 @@
 package dao
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/models"
 	"log"
-	"github.com/jinzhu/gorm"
-	"time"
 	"strings"
+	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/models"
 )
 
 type EthTxDao struct {
 }
 
-func (ethTxDao EthTxDao) GetById(id int64) (models.EthTx) {
+func (ethTxDao EthTxDao) GetById(id int64) models.EthTx {
 	dto := models.EthTx{}
 	err := models.Database().Where("id = ?", id).First(&dto).Error
 	if err != nil {

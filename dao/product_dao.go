@@ -1,16 +1,17 @@
 package dao
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/models"
 	"log"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/models"
 )
 
 type ProductDao struct {
 }
 
-func (productDao ProductDao) GetById(id int64) (models.Product) {
+func (productDao ProductDao) GetById(id int64) models.Product {
 	dto := models.Product{}
 	err := models.Database().Where("id = ?", id).First(&dto).Error
 	if err != nil {
@@ -19,7 +20,7 @@ func (productDao ProductDao) GetById(id int64) (models.Product) {
 	return dto
 }
 
-func (productDao ProductDao) GetFullById(id int64) (models.Product) {
+func (productDao ProductDao) GetFullById(id int64) models.Product {
 	dto := models.Product{}
 	db := models.Database()
 	db = db.Preload("ProductImages")

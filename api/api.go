@@ -1,14 +1,15 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/response_obj"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/request_obj"
+	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/bean"
-	"log"
-	"encoding/json"
+
+	"github.com/gin-gonic/gin"
+	"github.com/ninjadotorg/handshake-bazzar/bean"
+	"github.com/ninjadotorg/handshake-bazzar/request_obj"
+	"github.com/ninjadotorg/handshake-bazzar/response_obj"
 )
 
 type Api struct {

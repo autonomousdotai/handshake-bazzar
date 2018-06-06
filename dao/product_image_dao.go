@@ -1,16 +1,17 @@
 package dao
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/models"
 	"log"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/models"
 )
 
 type ProductImageDao struct {
 }
 
-func (productImageDao ProductImageDao) GetById(id int) (models.ProductImage) {
+func (productImageDao ProductImageDao) GetById(id int) models.ProductImage {
 	dto := models.ProductImage{}
 	err := models.Database().Where("id = ?", id).First(&dto).Error
 	if err != nil {
@@ -58,7 +59,7 @@ func (productImageDao ProductImageDao) Delete(dto models.ProductImage, tx *gorm.
 	return dto, nil
 }
 
-func (productImageDao ProductImageDao) GetByProductId(productId int64) ([]models.ProductImage) {
+func (productImageDao ProductImageDao) GetByProductId(productId int64) []models.ProductImage {
 	dtos := []models.ProductImage{}
 	err := models.Database().Where("product_id = ?", productId).Find(&dtos).Error
 	if err != nil {

@@ -2,8 +2,9 @@ package response_obj
 
 import (
 	"time"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/models"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/utils"
+
+	"github.com/ninjadotorg/handshake-bazzar/models"
+	"github.com/ninjadotorg/handshake-bazzar/utils"
 )
 
 type ProductResponse struct {

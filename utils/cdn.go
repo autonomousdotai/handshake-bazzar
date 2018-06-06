@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/configs"
+	"github.com/ninjadotorg/handshake-bazzar/configs"
 )
 
 func CdnUrlFor(fileUrl string) string {

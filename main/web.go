@@ -8,9 +8,10 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/api"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/configs"
+
 	"github.com/gin-gonic/gin"
+	"github.com/ninjadotorg/handshake-bazzar/api"
+	"github.com/ninjadotorg/handshake-bazzar/configs"
 )
 
 func main() {

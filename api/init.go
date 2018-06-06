@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/service"
+	"github.com/ninjadotorg/handshake-bazzar/service"
 )
 
 // service

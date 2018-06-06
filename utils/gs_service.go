@@ -1,16 +1,17 @@
 package utils
 
 import (
-	"fmt"
-	"net/http"
-	"mime/multipart"
-	"log"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/configs"
-	"encoding/json"
-	"io/ioutil"
-	"errors"
 	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"mime/multipart"
+	"net/http"
 	"net/url"
+
+	"github.com/ninjadotorg/handshake-bazzar/configs"
 )
 
 type GSService struct {

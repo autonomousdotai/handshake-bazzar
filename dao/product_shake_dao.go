@@ -1,16 +1,17 @@
 package dao
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/models"
 	"log"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/models"
 )
 
 type ProductShakeDao struct {
 }
 
-func (productShakeDao ProductShakeDao) GetById(id int64) (models.ProductShake) {
+func (productShakeDao ProductShakeDao) GetById(id int64) models.ProductShake {
 	dto := models.ProductShake{}
 	err := models.Database().Where("id = ?", id).First(&dto).Error
 	if err != nil {

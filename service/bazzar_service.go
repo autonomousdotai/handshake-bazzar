@@ -1,24 +1,25 @@
 package service
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/models"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/bean"
-	"errors"
-	"mime/multipart"
-	"strings"
-	"time"
-	"log"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/request_obj"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/utils"
-	"github.com/jinzhu/gorm"
-	"github.com/gin-gonic/gin"
-	"strconv"
-	"fmt"
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
+	"mime/multipart"
 	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/configs"
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/bean"
+	"github.com/ninjadotorg/handshake-bazzar/configs"
+	"github.com/ninjadotorg/handshake-bazzar/models"
+	"github.com/ninjadotorg/handshake-bazzar/request_obj"
+	"github.com/ninjadotorg/handshake-bazzar/utils"
 )
 
 type BazzarService struct {
@@ -168,7 +169,7 @@ func (crowdService BazzarService) ShakeProduct(userId int64, productId int64, qu
 	return productShake, nil
 }
 
-func (crowdService BazzarService) DeliverProductShake(userId int64, productShakeId int64, address string, hash string) (*bean.AppError) {
+func (crowdService BazzarService) DeliverProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
 		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
@@ -194,7 +195,7 @@ func (crowdService BazzarService) DeliverProductShake(userId int64, productShake
 	return nil
 }
 
-func (crowdService BazzarService) CancelProductShake(userId int64, productShakeId int64, address string, hash string) (*bean.AppError) {
+func (crowdService BazzarService) CancelProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
 		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
@@ -220,7 +221,7 @@ func (crowdService BazzarService) CancelProductShake(userId int64, productShakeI
 	return nil
 }
 
-func (crowdService BazzarService) RejectProductShake(userId int64, productShakeId int64, address string, hash string) (*bean.AppError) {
+func (crowdService BazzarService) RejectProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
 		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
@@ -246,7 +247,7 @@ func (crowdService BazzarService) RejectProductShake(userId int64, productShakeI
 	return nil
 }
 
-func (crowdService BazzarService) AcceptProductShake(userId int64, productShakeId int64, address string, hash string) (*bean.AppError) {
+func (crowdService BazzarService) AcceptProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
 		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
@@ -272,7 +273,7 @@ func (crowdService BazzarService) AcceptProductShake(userId int64, productShakeI
 	return nil
 }
 
-func (crowdService BazzarService) WithdrawProductShake(userId int64, productShakeId int64, address string, hash string) (*bean.AppError) {
+func (crowdService BazzarService) WithdrawProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
 		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
@@ -298,7 +299,7 @@ func (crowdService BazzarService) WithdrawProductShake(userId int64, productShak
 	return nil
 }
 
-func (crowdService BazzarService) MakeObjectToIndex(productId int64) (error) {
+func (crowdService BazzarService) MakeObjectToIndex(productId int64) error {
 	product := productDao.GetFullById(productId)
 
 	crowdFundingImages := productImageDao.GetByProductId(product.ID)
@@ -308,7 +309,7 @@ func (crowdService BazzarService) MakeObjectToIndex(productId int64) (error) {
 	}
 
 	document := map[string]interface{}{
-		"add": [] interface{}{
+		"add": []interface{}{
 			map[string]interface{}{
 				"id":                fmt.Sprintf("bazzar_%d", product.ID),
 				"hid_l":             0,

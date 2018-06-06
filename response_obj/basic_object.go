@@ -1,6 +1,6 @@
 package response_obj
 
-import "github.com/autonomousdotai/handshake-bazzar/bazzar-service/bean"
+import "github.com/ninjadotorg/handshake-bazzar/bean"
 
 type ResponseObject struct {
 	Status  int         `json:"status"`

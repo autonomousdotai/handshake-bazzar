@@ -1,16 +1,17 @@
 package dao
 
 import (
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/models"
 	"log"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/models"
 )
 
 type CrowdFundingFaqDao struct {
 }
 
-func (crowdFundingFaqDao CrowdFundingFaqDao) GetById(id int) (models.ProductFaq) {
+func (crowdFundingFaqDao CrowdFundingFaqDao) GetById(id int) models.ProductFaq {
 	dto := models.ProductFaq{}
 	err := models.Database().Where("id = ?", id).First(&dto).Error
 	if err != nil {

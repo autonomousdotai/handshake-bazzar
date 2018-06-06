@@ -1,9 +1,10 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
 	"log"
-	"github.com/autonomousdotai/handshake-bazzar/bazzar-service/configs"
+
+	"github.com/jinzhu/gorm"
+	"github.com/ninjadotorg/handshake-bazzar/configs"
 )
 
 var databaseConn *gorm.DB = nil
