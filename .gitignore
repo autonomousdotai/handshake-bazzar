@@ -1,8 +1,5 @@
 *.DS_Store
-*/.idea
-*/node_modules
-*/*.lock
-bazzar-job/*lock.json
-bazzar-service/vendor
-bazzar-service/logs
-bazzar-service/configs/*.json
+*lock.json
+vendor
+logs
+configs/*.json
