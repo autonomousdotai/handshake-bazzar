@@ -21,7 +21,10 @@ func main() {
 
 	configs.Initialize(os.Getenv("APP_CONF"))
 
-	go NewProcesser()
+	err := NewProcesser()
+	if err != nil {
+		panic(err)
+	}
 
 	// Logger
 	logFile, err := os.OpenFile("logs/autonomous_service.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
@@ -80,6 +83,12 @@ func NewProcesser() error {
 		log.Println(err)
 		return err
 	}
-	api.NewEthHandler(pubsubClient, configs.AppConf.PubsubConf.Topic, configs.AppConf.PubsubConf.Subscription)
+
+	handler, err := api.NewEthHandler(pubsubClient, configs.AppConf.PubsubConf.Topic, configs.AppConf.PubsubConf.Subscription)
+	if err != nil {
+		return err
+	}
+
+	go handler.Receive()
 	return nil
 }

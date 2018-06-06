@@ -13,7 +13,7 @@ import (
 
 type EtherHandler struct {
 	BubsubClient       *pubsub.Client
-	BubsubSubscription *pubsub.Subscription
+	PubsubSubscription *pubsub.Subscription
 }
 
 func NewEthHandler(pubsubClient *pubsub.Client, topicName, subscriptionName string) (*EtherHandler, error) {
@@ -45,17 +45,22 @@ func NewEthHandler(pubsubClient *pubsub.Client, topicName, subscriptionName stri
 			return nil, err
 		}
 	}
-	err = sub.Receive(context.Background(), func(ctx context.Context, m *pubsub.Message) {
+	handler.PubsubSubscription = sub
+
+	return &handler, nil
+}
+
+func (etherHandler *EtherHandler) Receive() error {
+	err := etherHandler.PubsubSubscription.Receive(context.Background(), func(ctx context.Context, m *pubsub.Message) {
 		log.Printf("Got message : %s", m.Data)
 		m.Ack()
-		handler.Process(m.Data)
+		etherHandler.Process(m.Data)
 	})
 	if err != nil {
 		log.Println("NewEthHandler", err)
-		return nil, err
+		return err
 	}
-
-	return &handler, nil
+	return nil
 }
 
 func (etherHandler *EtherHandler) Process(bytes []byte) error {
