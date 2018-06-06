@@ -21,6 +21,8 @@ func main() {
 
 	configs.Initialize(os.Getenv("APP_CONF"))
 
+	go NewProcesser()
+
 	// Logger
 	logFile, err := os.OpenFile("logs/autonomous_service.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
@@ -70,6 +72,8 @@ func AuthorizeMiddleware() gin.HandlerFunc {
 }
 
 func NewProcesser() error {
+	log.Println("NewProcesser")
+
 	opt := option.WithCredentialsFile(configs.AppConf.PubsubConf.CredsFile)
 	pubsubClient, err := pubsub.NewClient(context.Background(), configs.AppConf.PubsubConf.ProjectId, opt)
 	if err != nil {

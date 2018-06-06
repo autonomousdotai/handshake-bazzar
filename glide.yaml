@@ -1,5 +1,0 @@
-package: github.com/autonomousdotai/handshake-bazzar
-import:
-- package: github.com/gin-gonic/gin
-- package: github.com/jinzhu/gorm
-- package: github.com/go-sql-driver/mysql
