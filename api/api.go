@@ -71,11 +71,11 @@ func (self Api) CreateProduct(context *gin.Context) {
 		context.JSON(http.StatusOK, result)
 		return
 	}
-	crowdFunging, appErr := bazzarService.CreateProduct(userId.(int64), *request, context)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	crowdFunging, err := bazzarService.CreateProduct(userId.(int64), *request, context)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -125,11 +125,11 @@ func (self Api) UpdateProduct(context *gin.Context) {
 		return
 	}
 	imageFile, imageFileHeader, err := context.Request.FormFile("image")
-	product, appErr := bazzarService.UpdateProduct(userId.(int64), productId, *request, &imageFile, imageFileHeader)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	product, err := bazzarService.UpdateProduct(userId.(int64), productId, *request, &imageFile, imageFileHeader)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -157,11 +157,11 @@ func (self Api) GetProduct(context *gin.Context) {
 		return
 	}
 
-	crowdFunging, appErr := bazzarService.GetProduct(0, crowdFungingId)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	crowdFunging, err := bazzarService.GetProduct(0, crowdFungingId)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -204,11 +204,11 @@ func (self Api) ShakeProduct(context *gin.Context) {
 	address := context.Query("address")
 	hash := context.Query("hash")
 
-	productShake, appErr := bazzarService.ShakeProduct(userId.(int64), productId, quantity, address, hash)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	productShake, err := bazzarService.ShakeProduct(userId.(int64), productId, quantity, address, hash)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -249,11 +249,11 @@ func (self Api) DeliverProductShake(context *gin.Context) {
 	address := context.Query("address")
 	hash := context.Query("hash")
 
-	appErr := bazzarService.DeliverProductShake(userId.(int64), productShakeId, address, hash)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	err = bazzarService.DeliverProductShake(userId.(int64), productShakeId, address, hash)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -293,11 +293,11 @@ func (self Api) CancelProductShake(context *gin.Context) {
 	address := context.Query("address")
 	hash := context.Query("hash")
 
-	appErr := bazzarService.CancelProductShake(userId.(int64), productShakeId, address, hash)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	err = bazzarService.CancelProductShake(userId.(int64), productShakeId, address, hash)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -337,11 +337,11 @@ func (self Api) RejectProductShake(context *gin.Context) {
 	address := context.Query("address")
 	hash := context.Query("hash")
 
-	appErr := bazzarService.RejectProductShake(userId.(int64), productShakeId, address, hash)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	err = bazzarService.RejectProductShake(userId.(int64), productShakeId, address, hash)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -381,11 +381,11 @@ func (self Api) AcceptProductShake(context *gin.Context) {
 	address := context.Query("address")
 	hash := context.Query("hash")
 
-	appErr := bazzarService.AcceptProductShake(userId.(int64), productShakeId, address, hash)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	err = bazzarService.AcceptProductShake(userId.(int64), productShakeId, address, hash)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}
@@ -425,11 +425,11 @@ func (self Api) WithdrawProductShake(context *gin.Context) {
 	address := context.Query("address")
 	hash := context.Query("hash")
 
-	appErr := bazzarService.WithdrawProductShake(userId.(int64), productShakeId, address, hash)
-	if appErr != nil {
-		log.Print(appErr.OrgError)
+	err = bazzarService.WithdrawProductShake(userId.(int64), productShakeId, address, hash)
+	if err != nil {
+		log.Print(err)
 		result.SetStatus(bean.UnexpectedError)
-		result.Error = appErr.OrgError.Error()
+		result.Error = err.Error()
 		context.JSON(http.StatusOK, result)
 		return
 	}

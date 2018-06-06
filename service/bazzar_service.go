@@ -12,20 +12,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/ninjadotorg/handshake-bazzar/bean"
 	"github.com/ninjadotorg/handshake-bazzar/configs"
 	"github.com/ninjadotorg/handshake-bazzar/models"
 	"github.com/ninjadotorg/handshake-bazzar/request_obj"
 	"github.com/ninjadotorg/handshake-bazzar/utils"
+	solr "github.com/rtt/Go-Solr"
 )
 
 type BazzarService struct {
 }
 
-func (crowdService BazzarService) CreateTx(userId int64, address string, hash string, refType string, refId int64, tx *gorm.DB) (models.EthTx, *bean.AppError) {
+func (crowdService BazzarService) CreateTx(userId int64, address string, hash string, refType string, refId int64, tx *gorm.DB) (models.EthTx, error) {
 	ethTx := models.EthTx{}
 	ethTx.UserId = userId
 	ethTx.FromAddress = address
@@ -36,12 +35,12 @@ func (crowdService BazzarService) CreateTx(userId int64, address string, hash st
 	ethTx, err := ethTxDao.Create(ethTx, tx)
 	if err != nil {
 		log.Println(err)
-		return ethTx, &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return ethTx, err
 	}
 	return ethTx, nil
 }
 
-func (crowdService BazzarService) CreateProduct(userId int64, request request_obj.ProductRequest, context *gin.Context) (models.Product, *bean.AppError) {
+func (crowdService BazzarService) CreateProduct(userId int64, request request_obj.ProductRequest, context *gin.Context) (models.Product, error) {
 	product := models.Product{}
 
 	tx := models.Database().Begin()
@@ -57,7 +56,7 @@ func (crowdService BazzarService) CreateProduct(userId int64, request request_ob
 		log.Println(err)
 		//rollback
 		tx.Rollback()
-		return product, &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return product, err
 	}
 
 	imageLength, err := strconv.Atoi(context.Request.PostFormValue("image_length"))
@@ -67,7 +66,7 @@ func (crowdService BazzarService) CreateProduct(userId int64, request request_ob
 			log.Println(err)
 			//rollback
 			tx.Rollback()
-			return product, &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+			return product, err
 		}
 		filePath := ""
 		if imageFile != nil && imageFileHeader != nil {
@@ -81,7 +80,7 @@ func (crowdService BazzarService) CreateProduct(userId int64, request request_ob
 				log.Println(err)
 				//rollback
 				tx.Rollback()
-				return product, &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+				return product, err
 			}
 		}
 		productImage := models.ProductImage{}
@@ -94,7 +93,7 @@ func (crowdService BazzarService) CreateProduct(userId int64, request request_ob
 			log.Println(err)
 			//rollback
 			tx.Rollback()
-			return product, &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+			return product, err
 		}
 	}
 
@@ -105,10 +104,10 @@ func (crowdService BazzarService) CreateProduct(userId int64, request request_ob
 	return product, nil
 }
 
-func (crowdService BazzarService) UpdateProduct(userId int64, crowdFundingId int64, request request_obj.ProductRequest, imageFile *multipart.File, imageFileHeader *multipart.FileHeader) (models.Product, *bean.AppError) {
+func (crowdService BazzarService) UpdateProduct(userId int64, crowdFundingId int64, request request_obj.ProductRequest, imageFile *multipart.File, imageFileHeader *multipart.FileHeader) (models.Product, error) {
 	crowdFunding := productDao.GetById(crowdFundingId)
 	if crowdFunding.ID <= 0 || crowdFunding.UserId != userId {
-		return crowdFunding, &bean.AppError{errors.New("crowdFundingId is invalid"), "crowdFundingId is invalid", -1, "error_occurred"}
+		return crowdFunding, errors.New("crowdFundingId is invalid")
 	}
 
 	crowdFunding.Name = request.Name
@@ -123,29 +122,29 @@ func (crowdService BazzarService) UpdateProduct(userId int64, crowdFundingId int
 	crowdFunding, err := productDao.Update(crowdFunding, nil)
 	if err != nil {
 		log.Println(err)
-		return crowdFunding, &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return crowdFunding, err
 	}
 	return crowdFunding, nil
 }
 
-func (crowdService BazzarService) GetProduct(userId int64, crowdFundingId int64) (models.Product, *bean.AppError) {
+func (crowdService BazzarService) GetProduct(userId int64, crowdFundingId int64) (models.Product, error) {
 	crowdFunding := productDao.GetById(crowdFundingId)
 	if crowdFunding.ID <= 0 {
-		return crowdFunding, &bean.AppError{errors.New("crowdFundingId is invalid"), "crowdFundingId is invalid", -1, "error_occurred"}
+		return crowdFunding, errors.New("crowdFundingId is invalid")
 	}
 	return crowdFunding, nil
 }
 
-func (crowdService BazzarService) ShakeProduct(userId int64, productId int64, quantity int, address string, hash string) (models.ProductShake, *bean.AppError) {
+func (crowdService BazzarService) ShakeProduct(userId int64, productId int64, quantity int, address string, hash string) (models.ProductShake, error) {
 	productShake := models.ProductShake{}
 
 	if quantity <= 0 {
-		return productShake, &bean.AppError{errors.New("quantity is invalid"), "quantity is invalid", -1, "error_occurred"}
+		return productShake, errors.New("quantity is invalid")
 	}
 
 	crowdFunding := productDao.GetFullById(productId)
 	if crowdFunding.ID <= 0 {
-		return productShake, &bean.AppError{errors.New("productId is invalid"), "productId is invalid", -1, "error_occurred"}
+		return productShake, errors.New("productId is invalid")
 	}
 
 	productShake.UserId = userId
@@ -157,149 +156,148 @@ func (crowdService BazzarService) ShakeProduct(userId int64, productId int64, qu
 	productShake, err := productShakeDao.Create(productShake, nil)
 	if err != nil {
 		log.Println(err)
-		return productShake, &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return productShake, err
 	}
 
-	_, appErr := crowdService.CreateTx(userId, address, hash, "payable_shake", productShake.ID, nil)
-	if appErr != nil {
-		log.Println(appErr.OrgError)
-		return productShake, appErr
+	_, err = crowdService.CreateTx(userId, address, hash, "payable_shake", productShake.ID, nil)
+	if err != nil {
+		log.Println(err)
+		return productShake, err
 	}
 
 	return productShake, nil
 }
 
-func (crowdService BazzarService) DeliverProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
+func (crowdService BazzarService) DeliverProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
+		return errors.New("crowdFunding is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, appErr := crowdService.CreateTx(userId, address, hash, "payable_deliver", userId, tx)
-	if appErr != nil {
-		log.Println(appErr.OrgError)
+	_, err := crowdService.CreateTx(userId, address, hash, "payable_deliver", userId, tx)
+	if err != nil {
+		log.Println(err)
 
 		tx.Rollback()
-		return appErr
+		return err
 	}
 	productShake.Status = utils.ORDER_STATUS_DELIVERED_PROCESS
-	productShake, err := productShakeDao.Update(productShake, tx)
+	productShake, err = productShakeDao.Update(productShake, tx)
 	if err != nil {
 		log.Println(err)
 
 		tx.Rollback()
-		return &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return err
 	}
 
 	tx.Commit()
 	return nil
 }
 
-func (crowdService BazzarService) CancelProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
+func (crowdService BazzarService) CancelProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
+		return errors.New("crowdFunding is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, appErr := crowdService.CreateTx(userId, address, hash, "payable_cancel", userId, tx)
-	if appErr != nil {
-		log.Println(appErr.OrgError)
-
+	_, err := crowdService.CreateTx(userId, address, hash, "payable_cancel", userId, tx)
+	if err != nil {
+		log.Println(err)
 		tx.Rollback()
-		return appErr
+		return err
 	}
 	productShake.Status = utils.ORDER_STATUS_CANCELED_PROCESS
-	productShake, err := productShakeDao.Update(productShake, tx)
+	productShake, err = productShakeDao.Update(productShake, tx)
 	if err != nil {
 		log.Println(err)
 
 		tx.Rollback()
-		return &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return err
 	}
 
 	tx.Commit()
 	return nil
 }
 
-func (crowdService BazzarService) RejectProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
+func (crowdService BazzarService) RejectProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
+		return errors.New("crowdFunding is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, appErr := crowdService.CreateTx(userId, address, hash, "payable_reject", userId, tx)
-	if appErr != nil {
-		log.Println(appErr.OrgError)
+	_, err := crowdService.CreateTx(userId, address, hash, "payable_reject", userId, tx)
+	if err != nil {
+		log.Println(err)
 
 		tx.Rollback()
-		return appErr
+		return err
 	}
 	productShake.Status = utils.ORDER_STATUS_REJECTED_PROCESS
-	productShake, err := productShakeDao.Update(productShake, tx)
+	productShake, err = productShakeDao.Update(productShake, tx)
 	if err != nil {
 		log.Println(err)
 
 		tx.Rollback()
-		return &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return err
 	}
 
 	tx.Commit()
 	return nil
 }
 
-func (crowdService BazzarService) AcceptProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
+func (crowdService BazzarService) AcceptProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
+		return errors.New("crowdFunding is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, appErr := crowdService.CreateTx(userId, address, hash, "payable_accept", userId, tx)
-	if appErr != nil {
-		log.Println(appErr.OrgError)
+	_, err := crowdService.CreateTx(userId, address, hash, "payable_accept", userId, tx)
+	if err != nil {
+		log.Println(err)
 
 		tx.Rollback()
-		return appErr
+		return err
 	}
 	productShake.Status = utils.ORDER_STATUS_ACCEPTED_PROCESS
-	productShake, err := productShakeDao.Update(productShake, tx)
+	productShake, err = productShakeDao.Update(productShake, tx)
 	if err != nil {
 		log.Println(err)
 
 		tx.Rollback()
-		return &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return err
 	}
 
 	tx.Commit()
 	return nil
 }
 
-func (crowdService BazzarService) WithdrawProductShake(userId int64, productShakeId int64, address string, hash string) *bean.AppError {
+func (crowdService BazzarService) WithdrawProductShake(userId int64, productShakeId int64, address string, hash string) error {
 	productShake := productShakeDao.GetById(productShakeId)
 	if productShake.ID <= 0 || productShake.Status <= 0 {
-		return &bean.AppError{errors.New("crowdFunding is not shaked"), "crowdFunding is not shaked", -1, "error_occurred"}
+		return errors.New("crowdFunding is not shaked")
 	}
 	tx := models.Database().Begin()
-	_, appErr := crowdService.CreateTx(userId, address, hash, "payable_withdraw", userId, tx)
-	if appErr != nil {
-		log.Println(appErr.OrgError)
-
-		tx.Rollback()
-		return appErr
-	}
-	productShake.Status = utils.ORDER_STATUS_WITHDRAWED_PROCESS
-	productShake, err := productShakeDao.Update(productShake, tx)
+	_, err := crowdService.CreateTx(userId, address, hash, "payable_withdraw", userId, tx)
 	if err != nil {
 		log.Println(err)
 
 		tx.Rollback()
-		return &bean.AppError{errors.New(err.Error()), "Error occurred, please try again", -1, "error_occurred"}
+		return err
+	}
+	productShake.Status = utils.ORDER_STATUS_WITHDRAWED_PROCESS
+	productShake, err = productShakeDao.Update(productShake, tx)
+	if err != nil {
+		log.Println(err)
+
+		tx.Rollback()
+		return err
 	}
 
 	tx.Commit()
 	return nil
 }
 
-func (crowdService BazzarService) MakeObjectToIndex(productId int64) error {
+func (crowdService BazzarService) IndexSolr(productId int64) error {
 	product := productDao.GetFullById(productId)
 
 	crowdFundingImages := productImageDao.GetByProductId(product.ID)
@@ -318,9 +316,9 @@ func (crowdService BazzarService) MakeObjectToIndex(productId int64) error {
 				"init_user_id_i":    product.UserId,
 				"shake_user_ids_is": []int64{},
 				"text_search_ss":    []string{product.Name, product.Description, product.Specification},
-				"shake_count_i":     product.ShakeNum,
+				"shake_count_i":     0,
 				"view_count_i":      0,
-				"comment_count_i":   product.CommentNum,
+				"comment_count_i":   0,
 				"is_private_i":      0,
 				"init_at_i":         product.DateCreated.Unix(),
 				"last_update_at_i":  product.DateModified.Unix(),
@@ -337,7 +335,8 @@ func (crowdService BazzarService) MakeObjectToIndex(productId int64) error {
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", configs.SolrServiceUrl+"/handshake/update", bytes.NewBuffer(jsonStr))
+	url := fmt.Sprintf("%s/%s", configs.SolrServiceUrl, "handshake/update")
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return err
 	}
@@ -346,7 +345,7 @@ func (crowdService BazzarService) MakeObjectToIndex(productId int64) error {
 	if err != nil {
 		return err
 	}
-	result := algoliasearch.BatchRes{}
+	result := solr.UpdateResponse{}
 	err = json.Unmarshal(bodyBytes, &result)
 	if err != nil {
 		log.Println(err)
