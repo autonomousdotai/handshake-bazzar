@@ -353,3 +353,167 @@ func (crowdService BazzarService) IndexSolr(productId int64) error {
 	}
 	return nil
 }
+
+func (crowdService BazzarService) ProcessEventInit(hid int64, productShakeId int64) error {
+	productShake := productShakeDao.GetById(productShakeId)
+	if productShake.ID <= 0 {
+		return errors.New("productShake is invalid")
+	}
+
+	productShake.Hid = hid
+
+	productShake, err := productShakeDao.Update(productShake, nil)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (crowdService BazzarService) ProcessEventShake(hid int64, productShakeId int64, fromAddress string) error {
+	tx := models.Database().Begin()
+
+	productShake := productShakeDao.GetById(productShakeId)
+	if productShake.ID <= 0 {
+		tx.Rollback()
+		return errors.New("productShake is invalid")
+	}
+
+	productShake.Status = utils.ORDER_STATUS_SHAKED
+
+	productShake, err := productShakeDao.Update(productShake, tx)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	product := productDao.GetByHid(hid)
+	if product.ID <= 0 {
+		tx.Rollback()
+		return errors.New("product is invalid")
+	}
+
+	product.ShakeNum += 1
+
+	product, err = productDao.Update(product, tx)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (crowdService BazzarService) ProcessEventDeliver(hid int64, productShakeId int64) error {
+	tx := models.Database().Begin()
+
+	productShake := productShakeDao.GetById(productShakeId)
+	if productShake.ID <= 0 {
+		tx.Rollback()
+		return errors.New("productShake is invalid")
+	}
+
+	productShake.Status = utils.ORDER_STATUS_DELIVERED
+
+	productShake, err := productShakeDao.Update(productShake, tx)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (crowdService BazzarService) ProcessEventReject(hid int64, productShakeId int64) error {
+	tx := models.Database().Begin()
+
+	productShake := productShakeDao.GetById(productShakeId)
+	if productShake.ID <= 0 {
+		tx.Rollback()
+		return errors.New("productShake is invalid")
+	}
+
+	productShake.Status = utils.ORDER_STATUS_REJECTED
+
+	productShake, err := productShakeDao.Update(productShake, tx)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (crowdService BazzarService) ProcessEventAccept(hid int64, productShakeId int64) error {
+	tx := models.Database().Begin()
+
+	productShake := productShakeDao.GetById(productShakeId)
+	if productShake.ID <= 0 {
+		tx.Rollback()
+		return errors.New("productShake is invalid")
+	}
+
+	productShake.Status = utils.ORDER_STATUS_ACCEPTED
+
+	productShake, err := productShakeDao.Update(productShake, tx)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (crowdService BazzarService) ProcessEventCancel(hid int64, productShakeId int64) error {
+	tx := models.Database().Begin()
+
+	productShake := productShakeDao.GetById(productShakeId)
+	if productShake.ID <= 0 {
+		tx.Rollback()
+		return errors.New("productShake is invalid")
+	}
+
+	productShake.Status = utils.ORDER_STATUS_CANCELED
+
+	productShake, err := productShakeDao.Update(productShake, tx)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (crowdService BazzarService) ProcessEventWithdraw(hid int64, productShakeId int64) error {
+	tx := models.Database().Begin()
+
+	productShake := productShakeDao.GetById(productShakeId)
+	if productShake.ID <= 0 {
+		tx.Rollback()
+		return errors.New("productShake is invalid")
+	}
+
+	productShake.Status = utils.ORDER_STATUS_WITHDRAWED
+
+	productShake, err := productShakeDao.Update(productShake, tx)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}

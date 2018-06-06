@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/ninjadotorg/handshake-bazzar/utils"
 )
 
 type EtherHandler struct {
@@ -69,260 +71,239 @@ func (etherHandler *EtherHandler) Process(bytes []byte) error {
 	if !ok {
 		return errors.New("data is missed")
 	}
-	_ = data
-	_ = event
-	// switch event {
-	// case "__init":
-	// 	{
-	// 		hid := int64(-1)
-	// 		val, ok := data["hid"].(float64)
-	// 		if !ok {
-	// 			return errors.New("hid is invalid")
-	// 		}
-	// 		hid = int64(val)
-	// 		offchain, ok := data["offchain"].(string)
-	// 		offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
-	// 		if err != nil {
-	// 			log.Println("NewEthHandler.Process()", err)
-	// 			return err
-	// 		}
-	// 		if offchainType == utils.OFFCHAIN_BAZZAR {
-	// 			offchainId, err := strconv.ParseInt(offchainIdStr, 10, 64)
-	// 			if err != nil {
-	// 				log.Println("NewEthHandler.Process()", err)
-	// 				return err
-	// 			}
-	// 			// err = bazzarService.ProcessEventInit(hid, offchainId)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 		}
+	switch event {
+	case "__init":
+		{
+			hid := int64(-1)
+			val, ok := data["hid"].(float64)
+			if !ok {
+				return errors.New("hid is invalid")
+			}
+			hid = int64(val)
+			if hid < 0 {
+				return errors.New("hid is invalid")
+			}
+			offchain, ok := data["offchain"].(string)
+			offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
+			if err != nil {
+				log.Println("NewEthHandler.Process()", err)
+				return err
+			}
+			if offchainType == utils.OFFCHAIN_BAZZAR {
+				productShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+				err = bazzarService.ProcessEventInit(hid, productShakeId)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+			}
 
-	// 		_ = hid
-	// 		return nil
-	// 	}
-	// 	break
-	// case "__shake":
-	// 	{
-	// 		hid := int64(-1)
-	// 		val, ok := data["hid"].(float64)
-	// 		if !ok {
-	// 			return errors.New("hid is invalid")
-	// 		}
-	// 		hid = int64(val)
-	// 		offchain, ok := data["offchain"].(string)
-	// 		offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
-	// 		if err != nil {
-	// 			log.Println("NewEthHandler.Process()", err)
-	// 			return err
-	// 		}
-	// 		val, ok = data["state"].(float64)
-	// 		if !ok {
-	// 			return errors.New("state is invalid")
-	// 		}
-	// 		state := int(val)
-	// 		balance, ok := data["balance"].(float64)
-	// 		if !ok {
-	// 			return errors.New("balance is invalid")
-	// 		}
-	// 		if offchainType == utils.OFFCHAIN_BAZZAR_SHAKE {
-	// 			crowdFundingShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
-	// 			if err != nil {
-	// 				log.Println("NewEthHandler.Process()", err)
-	// 				return err
-	// 			}
-	// 			// err = bazzarService.ProcessEventShake(hid, state, balance, crowdFundingShakeId, fromAddress)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 		}
+			return nil
+		}
+		break
+	case "__shake":
+		{
+			hid := int64(-1)
+			val, ok := data["hid"].(float64)
+			if !ok {
+				return errors.New("hid is invalid")
+			}
+			hid = int64(val)
+			if hid < 0 {
+				return errors.New("hid is invalid")
+			}
+			offchain, ok := data["offchain"].(string)
+			offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
+			if err != nil {
+				log.Println("NewEthHandler.Process()", err)
+				return err
+			}
+			if offchainType == utils.OFFCHAIN_BAZZAR {
+				productShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+				err = bazzarService.ProcessEventShake(hid, productShakeId, fromAddress)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+			}
 
-	// 		_ = hid
-	// 		return nil
-	// 	}
-	// 	break
-	// case "__unshake":
-	// 	{
-	// 		hid := int64(-1)
-	// 		val, ok := data["hid"].(float64)
-	// 		if !ok {
-	// 			return errors.New("hid is invalid")
-	// 		}
-	// 		hid = int64(val)
-	// 		offchain, ok := data["offchain"].(string)
-	// 		offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
-	// 		if err != nil {
-	// 			log.Println("NewEthHandler.Process()", err)
-	// 			return err
-	// 		}
-	// 		val, ok = data["state"].(float64)
-	// 		if !ok {
-	// 			return errors.New("state is invalid")
-	// 		}
-	// 		state := int(val)
-	// 		balance, ok := data["balance"].(float64)
-	// 		if !ok {
-	// 			return errors.New("balance is invalid")
-	// 		}
-	// 		if offchainType == utils.OFFCHAIN_USER {
-	// 			userId, err := strconv.ParseInt(offchainIdStr, 10, 64)
-	// 			if err != nil {
-	// 				log.Println("NewEthHandler.Process()", err)
-	// 				return err
-	// 			}
-	// 			// err = bazzarService.ProcessEventUnShake(hid, state, balance, userId)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 		}
+			return nil
+		}
+		break
+	case "__deliver":
+		{
+			hid := int64(-1)
+			val, ok := data["hid"].(float64)
+			if !ok {
+				return errors.New("hid is invalid")
+			}
+			hid = int64(val)
+			if hid < 0 {
+				return errors.New("hid is invalid")
+			}
+			offchain, ok := data["offchain"].(string)
+			offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
+			if err != nil {
+				log.Println("NewEthHandler.Process()", err)
+				return err
+			}
+			if offchainType == utils.OFFCHAIN_BAZZAR {
+				productShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+				err = bazzarService.ProcessEventDeliver(hid, productShakeId)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+			}
 
-	// 		_ = hid
-	// 		return nil
-	// 	}
-	// 	break
-	// case "__cancel":
-	// 	{
-	// 		hid := int64(-1)
-	// 		val, ok := data["hid"].(float64)
-	// 		if !ok {
-	// 			return errors.New("hid is invalid")
-	// 		}
-	// 		hid = int64(val)
-	// 		offchain, ok := data["offchain"].(string)
-	// 		offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
-	// 		if err != nil {
-	// 			log.Println("NewEthHandler.Process()", err)
-	// 			return err
-	// 		}
-	// 		val, ok = data["state"].(float64)
-	// 		if !ok {
-	// 			return errors.New("state is invalid")
-	// 		}
-	// 		state := int(val)
-	// 		if offchainType == utils.OFFCHAIN_USER {
-	// 			userId, err := strconv.ParseInt(offchainIdStr, 10, 64)
-	// 			if err != nil {
-	// 				log.Println("NewEthHandler.Process()", err)
-	// 				return err
-	// 			}
-	// 			// err = bazzarService.ProcessEventCancel(hid, state, userId)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 		}
-	// 		_ = hid
-	// 		return nil
-	// 	}
-	// 	break
-	// case "__refund":
-	// 	{
-	// 		hid := int64(-1)
-	// 		val, ok := data["hid"].(float64)
-	// 		if !ok {
-	// 			return errors.New("hid is invalid")
-	// 		}
-	// 		hid = int64(val)
-	// 		offchain, ok := data["offchain"].(string)
-	// 		offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
-	// 		if err != nil {
-	// 			log.Println("NewEthHandler.Process()", err)
-	// 			return err
-	// 		}
-	// 		val, ok = data["state"].(float64)
-	// 		if !ok {
-	// 			return errors.New("state is invalid")
-	// 		}
-	// 		state := int(val)
-	// 		if offchainType == utils.OFFCHAIN_USER {
-	// 			userId, err := strconv.ParseInt(offchainIdStr, 10, 64)
-	// 			if err != nil {
-	// 				log.Println("NewEthHandler.Process()", err)
-	// 				return err
-	// 			}
-	// 			// err = bazzarService.ProcessEventRefund(hid, state, userId)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 		}
-	// 		_ = hid
-	// 		return nil
-	// 	}
-	// 	break
-	// case "__stop":
-	// 	{
-	// 		hid := int64(-1)
-	// 		val, ok := data["hid"].(float64)
-	// 		if !ok {
-	// 			return errors.New("hid is invalid")
-	// 		}
-	// 		hid = int64(val)
-	// 		offchain, ok := data["offchain"].(string)
-	// 		offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
-	// 		if err != nil {
-	// 			log.Println("NewEthHandler.Process()", err)
-	// 			return err
-	// 		}
-	// 		val, ok = data["state"].(float64)
-	// 		if !ok {
-	// 			return errors.New("state is invalid")
-	// 		}
-	// 		state := int(val)
-	// 		if offchainType == utils.OFFCHAIN_BAZZAR {
-	// 			crowdFundingId, err := strconv.ParseInt(offchainIdStr, 10, 64)
-	// 			if err != nil {
-	// 				log.Println("NewEthHandler.Process()", err)
-	// 				return err
-	// 			}
-	// 			// err = bazzarService.ProcessEventStop(hid, state, crowdFundingId)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 		}
-	// 		_ = hid
-	// 		return nil
-	// 	}
-	// 	break
-	// case "__withdraw":
-	// 	{
-	// 		hid := int64(-1)
-	// 		val, ok := data["hid"].(float64)
-	// 		if !ok {
-	// 			return errors.New("hid is invalid")
-	// 		}
-	// 		hid = int64(val)
-	// 		offchain, ok := data["offchain"].(string)
-	// 		offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
-	// 		if err != nil {
-	// 			log.Println("NewEthHandler.Process()", err)
-	// 			return err
-	// 		}
-	// 		amount, ok := data["amount"].(float64)
-	// 		if !ok {
-	// 			return errors.New("state is invalid")
-	// 		}
-	// 		if offchainType == utils.OFFCHAIN_BAZZAR {
-	// 			// crowdFundingId, err := strconv.ParseInt(offchainIdStr, 10, 64)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 			// err = bazzarService.ProcessEventWithdraw(hid, amount, crowdFundingId)
-	// 			// if err != nil {
-	// 			// 	log.Println("NewEthHandler.Process()", err)
-	// 			// 	return err
-	// 			// }
-	// 		}
-	// 		_ = hid
-	// 		return nil
-	// 	}
-	// 	break
-	// }
+			return nil
+		}
+		break
+	case "__reject":
+		{
+			hid := int64(-1)
+			val, ok := data["hid"].(float64)
+			if !ok {
+				return errors.New("hid is invalid")
+			}
+			hid = int64(val)
+			if hid < 0 {
+				return errors.New("hid is invalid")
+			}
+			offchain, ok := data["offchain"].(string)
+			offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
+			if err != nil {
+				log.Println("NewEthHandler.Process()", err)
+				return err
+			}
+			if offchainType == utils.OFFCHAIN_BAZZAR {
+				productShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+				err = bazzarService.ProcessEventReject(hid, productShakeId)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+			}
+
+			return nil
+		}
+		break
+	case "__accept":
+		{
+			hid := int64(-1)
+			val, ok := data["hid"].(float64)
+			if !ok {
+				return errors.New("hid is invalid")
+			}
+			hid = int64(val)
+			if hid < 0 {
+				return errors.New("hid is invalid")
+			}
+			offchain, ok := data["offchain"].(string)
+			offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
+			if err != nil {
+				log.Println("NewEthHandler.Process()", err)
+				return err
+			}
+			if offchainType == utils.OFFCHAIN_BAZZAR {
+				productShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+				err = bazzarService.ProcessEventAccept(hid, productShakeId)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+			}
+
+			return nil
+		}
+		break
+	case "__cancel":
+		{
+			hid := int64(-1)
+			val, ok := data["hid"].(float64)
+			if !ok {
+				return errors.New("hid is invalid")
+			}
+			hid = int64(val)
+			if hid < 0 {
+				return errors.New("hid is invalid")
+			}
+			offchain, ok := data["offchain"].(string)
+			offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
+			if err != nil {
+				log.Println("NewEthHandler.Process()", err)
+				return err
+			}
+			if offchainType == utils.OFFCHAIN_BAZZAR {
+				productShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+				err = bazzarService.ProcessEventCancel(hid, productShakeId)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+			}
+
+			return nil
+		}
+		break
+	case "__withdraw":
+		{
+			hid := int64(-1)
+			val, ok := data["hid"].(float64)
+			if !ok {
+				return errors.New("hid is invalid")
+			}
+			hid = int64(val)
+			if hid < 0 {
+				return errors.New("hid is invalid")
+			}
+			offchain, ok := data["offchain"].(string)
+			offchainType, offchainIdStr, err := utils.ParseOffchain(offchain)
+			if err != nil {
+				log.Println("NewEthHandler.Process()", err)
+				return err
+			}
+			if offchainType == utils.OFFCHAIN_BAZZAR {
+				productShakeId, err := strconv.ParseInt(offchainIdStr, 10, 64)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+				err = bazzarService.ProcessEventWithdraw(hid, productShakeId)
+				if err != nil {
+					log.Println("NewEthHandler.Process()", err)
+					return err
+				}
+			}
+
+			return nil
+		}
+		break
+	}
 	_ = fromAddress
 	return nil
 }

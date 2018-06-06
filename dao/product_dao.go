@@ -20,6 +20,15 @@ func (productDao ProductDao) GetById(id int64) models.Product {
 	return dto
 }
 
+func (productDao ProductDao) GetByHid(hid int64) models.Product {
+	dto := models.Product{}
+	err := models.Database().Where("hid = ?", hid).First(&dto).Error
+	if err != nil {
+		log.Print(err)
+	}
+	return dto
+}
+
 func (productDao ProductDao) GetFullById(id int64) models.Product {
 	dto := models.Product{}
 	db := models.Database()
