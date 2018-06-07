@@ -1,5 +1,6 @@
-*.DS_Store
-*lock
-vendor
+/*.DS_Store
+.idea
 logs
 configs/*.json
+.vscode
+debug

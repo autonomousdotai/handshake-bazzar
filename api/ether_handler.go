@@ -22,7 +22,8 @@ func NewEthHandler(pubsubClient *pubsub.Client, topicName, subscriptionName stri
 	handler.BubsubClient = pubsubClient
 
 	topic := pubsubClient.Topic(topicName)
-	if topic == nil || topic.ID() != topicName {
+	existed, err := topic.Exists(context.Background())
+	if topic == nil || !existed {
 		var err error
 		topic, err = pubsubClient.CreateTopic(context.Background(), topicName)
 		if err != nil {
@@ -32,12 +33,12 @@ func NewEthHandler(pubsubClient *pubsub.Client, topicName, subscriptionName stri
 	}
 
 	sub := pubsubClient.Subscription(subscriptionName)
-	existed, err := sub.Exists(context.Background())
+	existed, err = sub.Exists(context.Background())
 	if err != nil {
 		log.Println("NewEthHandler", err)
 		return nil, err
 	}
-	if !existed {
+	if sub == nil || !existed {
 		var err error
 		sub, err = pubsubClient.CreateSubscription(context.Background(), subscriptionName, pubsub.SubscriptionConfig{Topic: topic})
 		if err != nil {
@@ -45,6 +46,7 @@ func NewEthHandler(pubsubClient *pubsub.Client, topicName, subscriptionName stri
 			return nil, err
 		}
 	}
+
 	handler.PubsubSubscription = sub
 
 	return &handler, nil
