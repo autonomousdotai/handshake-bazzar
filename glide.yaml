@@ -1,0 +1,9 @@
+package: github.com/ninjadotorg/handshake-bazzar
+import:
+- package: github.com/gin-gonic/gin
+  version: v1.2
+- package: github.com/jinzhu/gorm
+  version: v1.9.1
+- package: github.com/go-sql-driver/mysql
+  version: v1.3
+- package: github.com/rtt/Go-Solr

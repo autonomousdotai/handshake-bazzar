@@ -72,7 +72,12 @@ func Logger() gin.HandlerFunc {
 
 func AuthorizeMiddleware() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		userId, _ := strconv.ParseInt(context.GetHeader("User-Id"), 10, 64)
+		userId, _ := strconv.ParseInt(context.GetHeader("Uid"), 10, 64)
+		if userId <= 0 {
+			context.JSON(http.StatusOK, gin.H{"status": 0, "message": "User is not authorized"})
+			context.Abort()
+			return
+		}
 		context.Set("UserId", userId)
 		context.Next()
 	}

@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-var DEFAULT_PAGE_SIZE = 20
-var DEFAULT_PAGE = 1
+var DEFAULT_PAGE_SIZE = "20"
+var DEFAULT_PAGE = "1"
 
 var ORDER_STATUS_NEW = 0
 var ORDER_STATUS_SHAKED = 1

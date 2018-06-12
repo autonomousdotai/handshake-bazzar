@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-bazzar/bean"
 	"github.com/ninjadotorg/handshake-bazzar/request_obj"
 	"github.com/ninjadotorg/handshake-bazzar/response_obj"
+	"github.com/ninjadotorg/handshake-bazzar/utils"
 )
 
 type FaqApi struct {
@@ -24,6 +25,9 @@ func (faqApi FaqApi) Init(router *gin.Engine) *gin.RouterGroup {
 			faqApi.CreateFaq(context)
 		})
 		faq.PUT("/:faq_id", func(context *gin.Context) {
+			faqApi.CreateFaq(context)
+		})
+		faq.PUT("/", func(context *gin.Context) {
 			faqApi.CreateFaq(context)
 		})
 	}
@@ -129,6 +133,77 @@ func (faqApi FaqApi) UpdateFaq(context *gin.Context) {
 	}
 
 	result.Data = response_obj.MakeProductFaqResponse(faq)
+	result.Status = 1
+	result.Message = ""
+	context.JSON(http.StatusOK, result)
+	return
+}
+
+func (faqApi FaqApi) GetFaqs(context *gin.Context) {
+	result := new(response_obj.ResponseObject)
+
+	userId, ok := context.Get("UserId")
+	if !ok {
+		result.SetStatus(bean.NotSignIn)
+		context.JSON(http.StatusOK, result)
+		return
+	}
+	if userId.(int64) <= 0 {
+		result.SetStatus(bean.NotSignIn)
+		context.JSON(http.StatusOK, result)
+		return
+	}
+
+	productId, err := strconv.ParseInt(context.Param("product_id"), 10, 64)
+	if err != nil {
+		result.SetStatus(bean.UnexpectedError)
+		context.JSON(http.StatusOK, result)
+		return
+	}
+	if productId <= 0 {
+		result.SetStatus(bean.UnexpectedError)
+		context.JSON(http.StatusOK, result)
+		return
+	}
+
+	pageSizeStr := context.Query("page_size")
+	if len(pageSizeStr) == 0 {
+		pageSizeStr = utils.DEFAULT_PAGE_SIZE
+	}
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil {
+		log.Print(err)
+		result.SetStatus(bean.UnexpectedError)
+		result.Error = err.Error()
+		context.JSON(http.StatusOK, result)
+		return
+	}
+	pageStr := context.Query("page")
+	if len(pageStr) == 0 {
+		pageStr = utils.DEFAULT_PAGE
+	}
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		log.Print(err)
+		result.SetStatus(bean.UnexpectedError)
+		result.Error = err.Error()
+		context.JSON(http.StatusOK, result)
+		return
+	}
+
+	var pagination *bean.Pagination
+	pagination = &bean.Pagination{PageSize: pageSize, Page: page}
+
+	faqs, err := bazzarService.GetFaqsByCrowdId(productId, pagination)
+	if err != nil {
+		log.Print(err)
+		result.SetStatus(bean.UnexpectedError)
+		result.Error = err.Error()
+		context.JSON(http.StatusOK, result)
+		return
+	}
+
+	result.Data = response_obj.MakePaginationProductFaqResponse(faqs)
 	result.Status = 1
 	result.Message = ""
 	context.JSON(http.StatusOK, result)
